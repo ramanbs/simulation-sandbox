@@ -7,6 +7,8 @@ const int WIDTH = 800;
 const int HEIGHT = 600;
 const int MIN_SHAPES = 100;
 
+
+
 struct Shape {
     float x, y; // Position
     float dx, dy; // Velocity
@@ -32,7 +34,31 @@ struct Shape {
     }
 };
 
+
 std::vector<Shape> shapes;
+
+void glfw_onKeyPressed(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        if (key == GLFW_KEY_UP) {
+            // Increase the number of shapes
+            shapes.emplace_back(
+                static_cast<float>(rand() % WIDTH),
+                static_cast<float>(rand() % HEIGHT),
+                static_cast<float>((rand() % 200) - 100),
+                static_cast<float>((rand() % 200) - 100),
+                static_cast<float>((rand() % 20) + 10),
+                static_cast<float>(rand()) / RAND_MAX,
+                static_cast<float>(rand()) / RAND_MAX,
+                static_cast<float>(rand()) / RAND_MAX
+            );
+        }
+        else if (key == GLFW_KEY_DOWN && shapes.size() > MIN_SHAPES) {
+            // Decrease the number of shapes
+            shapes.pop_back();
+        }
+    }
+}
 
 class CollisionResolver {
 public:
@@ -96,27 +122,7 @@ public:
         resolver->resolveCollisions(shapes);
     }
 
-    void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-            if (key == GLFW_KEY_UP) {
-                // Increase the number of shapes
-                shapes.emplace_back(
-                    static_cast<float>(rand() % WIDTH),
-                    static_cast<float>(rand() % HEIGHT),
-                    static_cast<float>((rand() % 200) - 100),
-                    static_cast<float>((rand() % 200) - 100),
-                    static_cast<float>((rand() % 20) + 10),
-                    static_cast<float>(rand()) / RAND_MAX,
-                    static_cast<float>(rand()) / RAND_MAX,
-                    static_cast<float>(rand()) / RAND_MAX
-                );
-            }
-            else if (key == GLFW_KEY_DOWN && shapes.size() > MIN_SHAPES) {
-                // Decrease the number of shapes
-                shapes.pop_back();
-            }
-        }
-    }
+    
 
     void run() 
     {
@@ -133,9 +139,7 @@ public:
         }
 
         glfwMakeContextCurrent(window);
-        glfwSetKeyCallback(window, [&](GLFWwindow* w, int key, int scancode, int action, int mods) {
-            keyCallback(w, key, scancode, action, mods);
-        });
+        glfwSetKeyCallback(window, glfw_onKeyPressed);
         glViewport(0, 0, WIDTH, HEIGHT);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -174,7 +178,7 @@ public:
 
             glfwPollEvents();
             update(static_cast<float>(deltaTime));
-            draw();
+            drawShapes();
         }
 
         glfwTerminate();
